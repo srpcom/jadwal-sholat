@@ -6,44 +6,98 @@
     <title>Jadwal Sholat • RSUD dr. R. Koesma</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:wght@700&amp;display=swap');
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .heading-font {
+            font-family: 'Playfair Display', Georgia, serif;
+        }
+
+        .prayer-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .prayer-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .time-text {
+            font-feature-settings: "tnum";
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <div class="max-w-md mx-auto p-6">
+<body class="bg-zinc-50">
+    <div class="max-w-lg mx-auto min-h-screen">
         <!-- Header -->
-        <div class="bg-emerald-700 text-white rounded-3xl p-6 mb-6 shadow-lg text-center">
-            <i class="fa-solid fa-mosque text-4xl mb-3"></i>
-            <h1 class="text-2xl font-bold">Jadwal Sholat</h1>
-            <p class="text-emerald-200 mt-1">RSUD dr. R. Koesma</p>
-            <p class="text-emerald-300 text-sm">Tuban, Jawa Timur</p>
+        <div class="bg-white border-b border-zinc-200 px-6 pt-8 pb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-x-3">
+                        <div class="w-11 h-11 bg-emerald-700 rounded-2xl flex items-center justify-center">
+                            <i class="fa-solid fa-mosque text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-semibold tracking-tight text-zinc-900">Jadwal Sholat</h1>
+                            <p class="text-emerald-700 text-sm font-medium">RSUD dr. R. Koesma</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-zinc-500">Tuban, Jawa Timur</div>
+                </div>
+            </div>
         </div>
 
-        <!-- Form -->
-        <div class="bg-white rounded-3xl shadow p-6 mb-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
-                <input type="date" id="tanggal" 
-                       class="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        <div class="p-6">
+            <!-- Date Picker Card -->
+            <div class="bg-white rounded-3xl shadow-sm border border-zinc-200 p-6 mb-6">
+                <div class="flex items-center gap-x-2 mb-4">
+                    <i class="fa-regular fa-calendar text-emerald-600"></i>
+                    <span class="text-sm font-medium text-zinc-700">Pilih Tanggal</span>
+                </div>
+                
+                <div class="flex gap-3">
+                    <input type="date" id="tanggal" 
+                           class="flex-1 border border-zinc-300 rounded-2xl px-4 py-[13px] text-sm focus:outline-none focus:border-emerald-600 transition-colors">
+                    
+                    <button onclick="getJadwalSholat()"
+                            class="bg-emerald-700 hover:bg-emerald-800 transition-colors text-white px-6 rounded-2xl text-sm font-semibold flex items-center gap-x-2">
+                        <i class="fa-solid fa-sync text-sm"></i>
+                        <span>Cari</span>
+                    </button>
+                </div>
             </div>
 
-            <button onclick="getJadwalSholat()"
-                    class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 transition text-white font-semibold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2">
-                <i class="fa-solid fa-sync"></i>
-                <span>Tampilkan Jadwal Sholat</span>
-            </button>
-        </div>
+            <!-- Result Card -->
+            <div id="hasil" class="hidden bg-white rounded-3xl shadow-sm border border-zinc-200 overflow-hidden">
+                <!-- Header Hasil -->
+                <div class="px-6 pt-6 pb-4 border-b border-zinc-100">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="text-emerald-700 text-xs font-semibold tracking-[1px] mb-1">KOTA TUBAN</div>
+                            <div class="text-2xl font-semibold text-zinc-900" id="lokasi"></div>
+                            <div class="text-sm text-zinc-500 mt-0.5" id="tanggalHasil"></div>
+                        </div>
+                        <div class="w-10 h-10 bg-emerald-100 rounded-2xl flex items-center justify-center">
+                            <i class="fa-solid fa-pray text-emerald-700 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Hasil -->
-        <div id="hasil" class="hidden bg-white rounded-3xl shadow p-6">
-            <div class="text-center mb-5">
-                <h2 class="text-xl font-bold text-gray-800" id="lokasi"></h2>
-                <p class="text-sm text-gray-500" id="tanggalHasil"></p>
+                <!-- Prayer Times -->
+                <div class="p-6" id="jadwal">
+                    <!-- Populated by JS -->
+                </div>
             </div>
 
-            <div class="space-y-3" id="jadwal"></div>
-        </div>
-
-        <div class="text-center text-xs text-gray-400 mt-6">
-            Data dari API Kemenag RI
+            <div class="text-center mt-8">
+                <p class="text-xs text-zinc-400">Data diambil dari API resmi Kemenag RI</p>
+            </div>
         </div>
     </div>
 
@@ -54,14 +108,12 @@
 
         async function getJadwalSholat() {
             const tanggal = document.getElementById('tanggal').value;
-
             if (!tanggal) {
-                alert("Silakan pilih tanggal");
+                alert("Silakan pilih tanggal terlebih dahulu");
                 return;
             }
 
             const [tahun, bulan, hari] = tanggal.split('-');
-            // Kota Tuban = 1406 (Khusus RSUD dr. R. Koesma)
             const url = `https://api.myquran.com/v2/sholat/jadwal/1406/${tahun}/${bulan}/${hari}`;
 
             try {
@@ -71,65 +123,47 @@
                 if (data.status === true && data.data) {
                     tampilkanHasil(data.data);
                 } else {
-                    alert("Data tidak ditemukan");
+                    alert("Data tidak ditemukan untuk tanggal tersebut.");
                 }
             } catch (err) {
-                alert("Gagal mengambil data");
+                alert("Gagal mengambil data. Silakan coba lagi.");
                 console.error(err);
             }
         }
 
         function tampilkanHasil(data) {
-            document.getElementById('hasil').classList.remove('hidden');
+            const hasil = document.getElementById('hasil');
+            hasil.classList.remove('hidden');
+
             document.getElementById('lokasi').innerText = data.lokasi;
             document.getElementById('tanggalHasil').innerText = data.jadwal.tanggal;
 
             const jadwal = data.jadwal;
+            
             const html = `
-                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-sun text-yellow-500 w-5"></i>
-                        <span>Imsak</span>
-                    </div>
-                    <span class="font-bold text-lg">${jadwal.imsak}</span>
-                </div>
-                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-sun text-orange-500 w-5"></i>
-                        <span>Subuh</span>
-                    </div>
-                    <span class="font-bold text-lg">${jadwal.subuh}</span>
-                </div>
-                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-sun text-yellow-600 w-5"></i>
-                        <span>Dzuhur</span>
-                    </div>
-                    <span class="font-bold text-lg">${jadwal.dzuhur}</span>
-                </div>
-                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-sun text-orange-600 w-5"></i>
-                        <span>Ashar</span>
-                    </div>
-                    <span class="font-bold text-lg">${jadwal.ashar}</span>
-                </div>
-                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-cloud-sun text-orange-700 w-5"></i>
-                        <span>Maghrib</span>
-                    </div>
-                    <span class="font-bold text-lg">${jadwal.maghrib}</span>
-                </div>
-                <div class="flex justify-between items-center bg-emerald-50 p-4 rounded-2xl">
-                    <div class="flex items-center gap-3">
-                        <i class="fa-solid fa-moon text-indigo-600 w-5"></i>
-                        <span>Isya</span>
-                    </div>
-                    <span class="font-bold text-lg">${jadwal.isya}</span>
+                <div class="space-y-px bg-zinc-100 rounded-2xl p-1">
+                    ${createPrayerRow('Imsak', jadwal.imsak, 'fa-sun', 'text-amber-500')}
+                    ${createPrayerRow('Subuh', jadwal.subuh, 'fa-sun', 'text-orange-500')}
+                    ${createPrayerRow('Dzuhur', jadwal.dzuhur, 'fa-sun', 'text-yellow-600')}
+                    ${createPrayerRow('Ashar', jadwal.ashar, 'fa-sun', 'text-orange-600')}
+                    ${createPrayerRow('Maghrib', jadwal.maghrib, 'fa-cloud-sun', 'text-orange-700')}
+                    ${createPrayerRow('Isya', jadwal.isya, 'fa-moon', 'text-indigo-600')}
                 </div>
             `;
+            
             document.getElementById('jadwal').innerHTML = html;
+        }
+
+        function createPrayerRow(name, time, icon, color) {
+            return `
+                <div class="prayer-card flex items-center justify-between bg-white px-5 py-[17px] rounded-2xl">
+                    <div class="flex items-center gap-x-3.5">
+                        <i class="fa-solid ${icon} ${color} w-5 text-lg"></i>
+                        <span class="font-medium text-zinc-700">${name}</span>
+                    </div>
+                    <span class="time-text font-semibold text-xl text-zinc-900 tabular-nums">${time}</span>
+                </div>
+            `;
         }
     </script>
 </body>
