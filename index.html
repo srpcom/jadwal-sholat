@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jadwal Sholat • RSUD dr. R. Koesma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="max-w-2xl mx-auto p-6">
+        <!-- Header -->
+        <div class="bg-emerald-700 text-white rounded-3xl p-6 mb-6 shadow">
+            <div class="flex items-center gap-4">
+                <i class="fa-solid fa-mosque text-4xl"></i>
+                <div>
+                    <h1 class="text-2xl font-bold">Jadwal Sholat</h1>
+                    <p class="text-emerald-200 text-sm">RSUD dr. R. Koesma • Tuban, Jawa Timur</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="bg-white rounded-3xl shadow p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Kota / Kabupaten</label>
+                    <select id="kota" class="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="1406">Tuban</option>
+                        <option value="1407">Lamongan</option>
+                        <option value="501">Surabaya</option>
+                        <option value="1405">Bojonegoro</option>
+                        <option value="1408">Gresik</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                    <input type="date" id="tanggal" class="w-full border border-gray-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+            </div>
+
+            <button onclick="getJadwalSholat()"
+                    class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 transition text-white font-semibold py-3.5 px-6 rounded-2xl flex items-center justify-center gap-2">
+                <i class="fa-solid fa-sync"></i>
+                <span>Tampilkan Jadwal Sholat</span>
+            </button>
+        </div>
+
+        <!-- Hasil -->
+        <div id="hasil" class="hidden bg-white rounded-3xl shadow p-6">
+            <div class="flex justify-between items-start mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800" id="lokasi"></h2>
+                    <p class="text-sm text-gray-500" id="tanggalHasil"></p>
+                </div>
+                <i class="fa-solid fa-pray text-emerald-600 text-3xl mt-1"></i>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3" id="jadwal"></div>
+        </div>
+    </div>
+
+    <script>
+        // Set tanggal default hari ini
+        const today = new Date();
+        document.getElementById('tanggal').value = today.toISOString().split('T')[0];
+
+        async function getJadwalSholat() {
+            const kota = document.getElementById('kota').value;
+            const tanggal = document.getElementById('tanggal').value;
+
+            if (!tanggal) {
+                alert("Silakan pilih tanggal terlebih dahulu");
+                return;
+            }
+
+            const [tahun, bulan, hari] = tanggal.split('-');
+            const url = `https://api.myquran.com/v2/sholat/jadwal/${kota}/${tahun}/${bulan}/${hari}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.status === true && data.data) {
+                    tampilkanHasil(data.data);
+                } else {
+                    alert("Data tidak ditemukan untuk tanggal tersebut.");
+                }
+            } catch (err) {
+                alert("Gagal mengambil data dari server.");
+                console.error(err);
+            }
+        }
+
+        function tampilkanHasil(data) {
+            document.getElementById('hasil').classList.remove('hidden');
+            document.getElementById('lokasi').innerText = data.lokasi;
+            document.getElementById('tanggalHasil').innerText = data.jadwal.tanggal;
+
+            const jadwal = data.jadwal;
+            const html = `
+                <div class="bg-emerald-50 p-4 rounded-2xl flex justify-between">
+                    <div><i class="fa-solid fa-sun text-yellow-500 mr-2"></i>Imsak</div>
+                    <div class="font-bold">${jadwal.imsak}</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-2xl flex justify-between">
+                    <div><i class="fa-solid fa-sun text-orange-500 mr-2"></i>Subuh</div>
+                    <div class="font-bold">${jadwal.subuh}</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-2xl flex justify-between">
+                    <div><i class="fa-solid fa-sun text-yellow-600 mr-2"></i>Dzuhur</div>
+                    <div class="font-bold">${jadwal.dzuhur}</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-2xl flex justify-between">
+                    <div><i class="fa-solid fa-sun text-orange-600 mr-2"></i>Ashar</div>
+                    <div class="font-bold">${jadwal.ashar}</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-2xl flex justify-between">
+                    <div><i class="fa-solid fa-cloud-sun text-orange-700 mr-2"></i>Maghrib</div>
+                    <div class="font-bold">${jadwal.maghrib}</div>
+                </div>
+                <div class="bg-emerald-50 p-4 rounded-2xl flex justify-between">
+                    <div><i class="fa-solid fa-moon text-indigo-600 mr-2"></i>Isya</div>
+                    <div class="font-bold">${jadwal.isya}</div>
+                </div>
+            `;
+            document.getElementById('jadwal').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
